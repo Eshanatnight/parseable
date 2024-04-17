@@ -22,15 +22,11 @@ use std::collections::HashMap;
 use arrow_schema::{DataType, Field, Schema};
 use serde_json::Value;
 
-pub(super) fn v1_v3(schema: Option<Value>) -> anyhow::Result<Schema> {
-    if let Some(schema) = schema {
-        value_to_schema(schema)
-    } else {
-        Ok(Schema::empty())
-    }
+pub fn v1_v3(schema: Option<Value>) -> anyhow::Result<Schema> {
+    schema.map_or_else(|| Ok(Schema::empty()), value_to_schema)
 }
 
-pub(super) fn v2_v3(schemas: HashMap<String, Value>) -> anyhow::Result<Schema> {
+pub fn v2_v3(schemas: HashMap<String, Value>) -> anyhow::Result<Schema> {
     let mut derived_schemas = Vec::new();
 
     for value in schemas.into_values() {

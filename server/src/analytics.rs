@@ -188,7 +188,7 @@ async fn fetch_ingestors_metrics() -> anyhow::Result<(u64, u64, usize, u64, u64,
             active_ingestors += 1;
         }
 
-        node_metrics.accumulate(&mut vec);
+        node_metrics.accumulate(&vec);
     }
 
     Ok((
@@ -268,7 +268,7 @@ impl NodeMetrics {
         }
     }
 
-    fn new(
+    const fn new(
         stream_count: usize,
         total_events_count: u64,
         total_json_bytes: u64,
@@ -282,7 +282,7 @@ impl NodeMetrics {
         }
     }
 
-    fn accumulate(&mut self, other: &mut [NodeMetrics]) {
+    fn accumulate(&mut self, other: &[Self]) {
         other.iter().for_each(|nm| {
             self.total_events_count += nm.total_events_count;
             self.total_json_bytes += nm.total_json_bytes;

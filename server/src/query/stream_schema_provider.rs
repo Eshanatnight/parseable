@@ -540,12 +540,12 @@ impl PartialTimeFilter {
         };
         let (op, time) = extract_timestamp_bound(binexpr.clone(), time_partition)?;
         let value = match op {
-            Operator::Gt => PartialTimeFilter::Low(Bound::Excluded(time)),
-            Operator::GtEq => PartialTimeFilter::Low(Bound::Included(time)),
-            Operator::Lt => PartialTimeFilter::High(Bound::Excluded(time)),
-            Operator::LtEq => PartialTimeFilter::High(Bound::Included(time)),
-            Operator::Eq => PartialTimeFilter::Eq(time),
-            Operator::IsNotDistinctFrom => PartialTimeFilter::Eq(time),
+            Operator::Gt => Self::Low(Bound::Excluded(time)),
+            Operator::GtEq => Self::Low(Bound::Included(time)),
+            Operator::Lt => Self::High(Bound::Excluded(time)),
+            Operator::LtEq => Self::High(Bound::Included(time)),
+            Operator::Eq => Self::Eq(time),
+            Operator::IsNotDistinctFrom => Self::Eq(time),
             _ => return None,
         };
         Some(value)
@@ -553,19 +553,11 @@ impl PartialTimeFilter {
 
     pub fn binary_expr(&self, left: Expr) -> Expr {
         let (op, right) = match self {
-            PartialTimeFilter::Low(Bound::Excluded(time)) => {
-                (Operator::Gt, time.and_utc().timestamp_millis())
-            }
-            PartialTimeFilter::Low(Bound::Included(time)) => {
-                (Operator::GtEq, time.and_utc().timestamp_millis())
-            }
-            PartialTimeFilter::High(Bound::Excluded(time)) => {
-                (Operator::Lt, time.and_utc().timestamp_millis())
-            }
-            PartialTimeFilter::High(Bound::Included(time)) => {
-                (Operator::LtEq, time.and_utc().timestamp_millis())
-            }
-            PartialTimeFilter::Eq(time) => (Operator::Eq, time.and_utc().timestamp_millis()),
+            Self::Low(Bound::Excluded(time)) => (Operator::Gt, time.and_utc().timestamp_millis()),
+            Self::Low(Bound::Included(time)) => (Operator::GtEq, time.and_utc().timestamp_millis()),
+            Self::High(Bound::Excluded(time)) => (Operator::Lt, time.and_utc().timestamp_millis()),
+            Self::High(Bound::Included(time)) => (Operator::LtEq, time.and_utc().timestamp_millis()),
+            Self::Eq(time) => (Operator::Eq, time.and_utc().timestamp_millis()),
             _ => unimplemented!(),
         };
 
@@ -576,6 +568,26 @@ impl PartialTimeFilter {
                 Some(right),
                 None,
             ))),
+        ))
+    }
+
+    pub fn binary_expr_timestamp_partition_key(&self, left: Expr) -> Expr {
+        let (op, right) = match self {
+            Self::Low(Bound::Excluded(time)) => (Operator::Gt, time),
+            Self::Low(Bound::Included(time)) => (Operator::GtEq, time),
+            Self::High(Bound::Excluded(time)) => (Operator::Lt, time),
+            Self::High(Bound::Included(time)) => (Operator::LtEq, time),
+            Self::Eq(time) => (Operator::Eq, time),
+            _ => unimplemented!(),
+        };
+
+        Expr::BinaryExpr(BinaryExpr::new(
+            Box::new(left),
+            op,
+            Box::new(Expr::Literal(ScalarValue::Utf8(Some(format!(
+                "{:?}",
+                right
+            ))))),
         ))
     }
 }
@@ -715,12 +727,13 @@ fn extract_primary_filter(
     filters.iter().for_each(|expr| {
         let _ = expr.apply(&mut |expr| {
             let time = PartialTimeFilter::try_from_expr(expr, time_partition.clone());
-            if let Some(time) = time {
-                time_filters.push(time);
-                Ok(TreeNodeRecursion::Stop)
-            } else {
-                Ok(TreeNodeRecursion::Jump)
-            }
+            time.map_or_else(
+                || Ok(TreeNodeRecursion::Jump),
+                |time| {
+                    time_filters.push(time);
+                    Ok(TreeNodeRecursion::Stop)
+                },
+            )
         });
     });
     time_filters
@@ -744,7 +757,7 @@ trait ManifestExt: ManifestFile {
     }
 
     fn can_be_pruned(&self, partial_filter: &Expr) -> bool {
-        fn extract_op_scalar(expr: &Expr) -> Option<(Operator, &ScalarValue)> {
+        const fn extract_op_scalar(expr: &Expr) -> Option<(Operator, &ScalarValue)> {
             let Expr::BinaryExpr(expr) = expr else {
                 return None;
             };

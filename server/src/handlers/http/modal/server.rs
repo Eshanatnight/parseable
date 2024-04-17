@@ -81,7 +81,7 @@ impl ParseableServer for Server {
         let create_app_fn = move || {
             App::new()
                 .wrap(prometheus.clone())
-                .configure(|cfg| Server::configure_routes(cfg, oidc_client.clone()))
+                .configure(|cfg| Self::configure_routes(cfg, oidc_client.clone()))
                 .wrap(actix_web::middleware::Logger::default())
                 .wrap(actix_web::middleware::Compress::default())
                 .wrap(cross_origin_config())

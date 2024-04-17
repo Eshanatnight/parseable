@@ -184,7 +184,7 @@ impl TryFrom<TargetVerifier> for Target {
             }
         }
 
-        Ok(Target {
+        Ok(Self {
             target: value.target,
             timeout,
         })
@@ -205,9 +205,9 @@ pub enum TargetType {
 impl TargetType {
     pub async fn call(&self, payload: &Context) {
         match self {
-            TargetType::Slack(target) => target.call(payload).await,
-            TargetType::Other(target) => target.call(payload).await,
-            TargetType::AlertManager(target) => target.call(payload).await,
+            Self::Slack(target) => target.call(payload).await,
+            Self::Other(target) => target.call(payload).await,
+            Self::AlertManager(target) => target.call(payload).await,
         }
     }
 }

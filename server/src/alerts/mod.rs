@@ -178,7 +178,7 @@ pub struct Context {
 }
 
 impl Context {
-    pub fn new(
+    pub const fn new(
         stream: String,
         alert_info: AlertInfo,
         deployment_info: DeploymentInfo,
@@ -219,7 +219,7 @@ pub struct AlertInfo {
 }
 
 impl AlertInfo {
-    pub fn new(
+    pub const fn new(
         alert_name: String,
         message: String,
         reason: String,
@@ -242,7 +242,7 @@ pub struct DeploymentInfo {
 }
 
 impl DeploymentInfo {
-    pub fn new(
+    pub const fn new(
         deployment_instance: String,
         deployment_id: uid::Uid,
         deployment_mode: String,
@@ -272,10 +272,10 @@ impl Default for AlertState {
 impl fmt::Display for AlertState {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
-            AlertState::Listening => write!(f, "Listening"),
-            AlertState::SetToFiring => write!(f, "SetToFiring"),
-            AlertState::Firing => write!(f, "Firing"),
-            AlertState::Resolved => write!(f, "Resolved"),
+            Self::Listening => write!(f, "Listening"),
+            Self::SetToFiring => write!(f, "SetToFiring"),
+            Self::Firing => write!(f, "Firing"),
+            Self::Resolved => write!(f, "Resolved"),
         }
     }
 }

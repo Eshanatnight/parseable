@@ -88,10 +88,11 @@ pub async fn put_default(name: web::Json<String>) -> Result<impl Responder, Role
 // Handler for GET /api/v1/role/default
 // Delete existing role
 pub async fn get_default() -> Result<impl Responder, RoleError> {
-    let res = match DEFAULT_ROLE.lock().unwrap().clone() {
-        Some(role) => serde_json::Value::String(role),
-        None => serde_json::Value::Null,
-    };
+    let res = DEFAULT_ROLE
+        .lock()
+        .unwrap()
+        .clone()
+        .map_or_else(|| serde_json::Value::Null, serde_json::Value::String);
 
     Ok(web::Json(res))
 }

@@ -44,7 +44,7 @@ impl From<&user::User> for User {
             user::UserType::OAuth(_) => "oauth".to_string(),
         };
 
-        User {
+        Self {
             id: user.username().to_owned(),
             method,
         }

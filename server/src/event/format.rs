@@ -128,7 +128,6 @@ pub trait EventFormat: Sized {
             .fields()
             .iter()
             .map(|field| (field.name().to_owned(), field.clone()))
-            .collect::<HashMap<String, Arc<Field>>>()
         {
             if let Some(storage_field) = storage_schema.get(&field_name) {
                 if field_name != *storage_field.name() {

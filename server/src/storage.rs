@@ -24,7 +24,7 @@ use std::fmt::Debug;
 
 mod localfs;
 mod metrics_layer;
-pub(crate) mod object_storage;
+pub mod object_storage;
 pub mod retention;
 mod s3;
 pub mod staging;
@@ -122,7 +122,7 @@ pub struct Owner {
 }
 
 impl Owner {
-    pub fn new(id: String, group: String) -> Self {
+    pub const fn new(id: String, group: String) -> Self {
         Self { id, group }
     }
 }
@@ -171,7 +171,7 @@ impl ObjectStoreFormat {
     }
 }
 
-#[derive(serde::Serialize, PartialEq)]
+#[derive(serde::Serialize, PartialEq, Eq)]
 pub struct LogStream {
     pub name: String,
 }

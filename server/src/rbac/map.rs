@@ -161,12 +161,10 @@ impl Sessions {
     pub fn remove_session(&mut self, key: &SessionKey) -> Option<String> {
         let (user, _) = self.active_sessions.remove(key)?;
 
-        if let Some(items) = self.user_sessions.get_mut(&user) {
+        self.user_sessions.get_mut(&user).and_then(|items| {
             items.retain(|(session, _)| session != key);
             Some(user)
-        } else {
-            None
-        }
+        })
     }
 
     // remove sessions related to a user
@@ -208,12 +206,11 @@ impl Sessions {
                     Permission::Unit(action) => action == required_action || action == Action::All,
                     Permission::Stream(action, ref stream)
                     | Permission::StreamWithTag(action, ref stream, _) => {
-                        let ok_stream = if let Some(context_stream) = context_stream {
+                        // if no stream to match then stream check is not needed
+                        let ok_stream = context_stream.map_or(true, |context_stream| {
                             stream == context_stream || stream == "*"
-                        } else {
-                            // if no stream to match then stream check is not needed
-                            true
-                        };
+                        });
+
                         (action == required_action || action == Action::All) && ok_stream
                     }
                     Permission::SelfUser if required_action == Action::GetUserRoles => {

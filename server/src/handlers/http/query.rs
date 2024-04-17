@@ -161,7 +161,7 @@ impl FromRequest for Query {
     type Future = Pin<Box<dyn Future<Output = Result<Self, Self::Error>>>>;
 
     fn from_request(req: &HttpRequest, payload: &mut actix_web::dev::Payload) -> Self::Future {
-        let query = Json::<Query>::from_request(req, payload);
+        let query = Json::<Self>::from_request(req, payload);
         let params = web::Query::<HashMap<String, bool>>::from_request(req, payload)
             .into_inner()
             .map(|x| x.0)
@@ -303,7 +303,7 @@ Description: {0}"#
 impl actix_web::ResponseError for QueryError {
     fn status_code(&self) -> http::StatusCode {
         match self {
-            QueryError::Execute(_) | QueryError::JsonParse(_) => StatusCode::INTERNAL_SERVER_ERROR,
+            Self::Execute(_) | Self::JsonParse(_)=> StatusCode::INTERNAL_SERVER_ERROR,
             _ => StatusCode::BAD_REQUEST,
         }
     }

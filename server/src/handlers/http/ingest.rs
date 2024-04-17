@@ -273,18 +273,18 @@ pub enum PostError {
 impl actix_web::ResponseError for PostError {
     fn status_code(&self) -> http::StatusCode {
         match self {
-            PostError::SerdeError(_) => StatusCode::BAD_REQUEST,
-            PostError::Header(_) => StatusCode::BAD_REQUEST,
-            PostError::Event(_) => StatusCode::INTERNAL_SERVER_ERROR,
-            PostError::Invalid(_) => StatusCode::BAD_REQUEST,
-            PostError::CreateStream(CreateStreamError::StreamNameValidation(_)) => {
+            Self::SerdeError(_) => StatusCode::BAD_REQUEST,
+            Self::Header(_) => StatusCode::BAD_REQUEST,
+            Self::Event(_) => StatusCode::INTERNAL_SERVER_ERROR,
+            Self::Invalid(_) => StatusCode::BAD_REQUEST,
+            Self::CreateStream(CreateStreamError::StreamNameValidation(_)) => {
                 StatusCode::BAD_REQUEST
             }
-            PostError::CreateStream(_) => StatusCode::INTERNAL_SERVER_ERROR,
-            PostError::StreamNotFound(_) => StatusCode::NOT_FOUND,
-            PostError::CustomError(_) => StatusCode::INTERNAL_SERVER_ERROR,
-            PostError::NetworkError(_) => StatusCode::INTERNAL_SERVER_ERROR,
-            PostError::ObjectStorageError(_) => StatusCode::INTERNAL_SERVER_ERROR,
+            Self::CreateStream(_) => StatusCode::INTERNAL_SERVER_ERROR,
+            Self::StreamNotFound(_) => StatusCode::NOT_FOUND,
+            Self::CustomError(_) => StatusCode::INTERNAL_SERVER_ERROR,
+            Self::NetworkError(_) => StatusCode::INTERNAL_SERVER_ERROR,
+            Self::ObjectStorageError(_) => StatusCode::INTERNAL_SERVER_ERROR,
         }
     }
 

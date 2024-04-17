@@ -208,10 +208,9 @@ pub fn server() -> impl Future<Output = Result<(), Box<dyn std::error::Error + S
     // match on config to decide if we want to use tls or not
     match config {
         Some(config) => {
-            let server = match Server::builder().tls_config(config) {
-                Ok(server) => server,
-                Err(_) => Server::builder(),
-            };
+            let server = Server::builder()
+                .tls_config(config)
+                .map_or_else(|_| Server::builder(), |server| server);
 
             server
                 .accept_http1(true)
@@ -233,11 +232,11 @@ pub fn server() -> impl Future<Output = Result<(), Box<dyn std::error::Error + S
 
 fn extract_stream(body: &serde_json::Value) -> Result<&str, Status> {
     body.as_object()
-        .ok_or(Status::invalid_argument("expected object in request body"))?
+        .ok_or_else(|| Status::invalid_argument("expected object in request body"))?
         .get("stream")
-        .ok_or(Status::invalid_argument("stream key value is not provided"))?
+        .ok_or_else(|| Status::invalid_argument("stream key value is not provided"))?
         .as_str()
-        .ok_or(Status::invalid_argument("stream key value is invalid"))
+        .ok_or_else(|| Status::invalid_argument("stream key value is invalid"))
 }
 
 fn extract_session_key(headers: &MetadataMap) -> Result<SessionKey, Status> {
@@ -274,15 +273,11 @@ fn extract_basic_auth(header: &MetadataMap) -> Option<Credentials> {
 fn extract_cookie(header: &MetadataMap) -> Option<Cookie> {
     // extract the cookie from the request
     let cookies = header.get_all("cookie");
-    let cookies: Vec<_> = cookies
+    cookies
         .iter()
         .filter_map(|value| value.to_str().ok())
         .flat_map(Cookie::split_parse)
         .map(|value| value.expect("cookie is parseable"))
-        .collect();
-
-    cookies
-        .into_iter()
         .find(|cookie| cookie.name() == SESSION_COOKIE_NAME)
 }
 

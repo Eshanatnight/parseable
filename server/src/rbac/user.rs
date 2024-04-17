@@ -77,7 +77,7 @@ impl User {
         }
     }
 
-    pub fn is_oauth(&self) -> bool {
+    pub const fn is_oauth(&self) -> bool {
         matches!(self.ty, UserType::OAuth(_))
     }
 
@@ -175,7 +175,7 @@ pub struct UserInfo {
 
 impl From<openid::Userinfo> for UserInfo {
     fn from(user: openid::Userinfo) -> Self {
-        UserInfo {
+        Self {
             name: user.name,
             preferred_username: user.preferred_username,
             picture: user.picture,

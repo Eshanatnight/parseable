@@ -264,9 +264,10 @@ impl S3 {
         if let Err(object_store::Error::NotFound { source, .. }) = &resp {
             let source_str = source.to_string();
             if source_str.contains("<Code>NoSuchBucket</Code>") {
-                return Err(ObjectStorageError::Custom(
-                    format!("Bucket '{}' does not exist in S3.", self.bucket).to_string(),
-                ));
+                return Err(ObjectStorageError::Custom(format!(
+                    "Bucket '{}' does not exist in S3.",
+                    self.bucket
+                )));
             }
         }
 
@@ -418,11 +419,7 @@ impl ObjectStorage for S3 {
     ) -> Result<Vec<Bytes>, ObjectStorageError> {
         let instant = Instant::now();
 
-        let prefix = if let Some(base_path) = base_path {
-            to_object_store_path(base_path)
-        } else {
-            self.root.clone()
-        };
+        let prefix = base_path.map_or_else(|| self.root.clone(), to_object_store_path);
 
         let mut list_stream = self.client.list(Some(&prefix));
 
@@ -555,11 +552,10 @@ impl ObjectStorage for S3 {
                 // the given url path was incorrect
                 if matches!(err, object_store::Error::NotFound { .. }) {
                     log::error!("Node does not exist");
-                    Err(err.into())
                 } else {
                     log::error!("Error deleting ingestor meta file: {:?}", err);
-                    Err(err.into())
                 }
+                Err(err.into())
             }
         }
     }
@@ -646,17 +642,15 @@ impl ObjectStorage for S3 {
 impl From<object_store::Error> for ObjectStorageError {
     fn from(error: object_store::Error) -> Self {
         match error {
-            object_store::Error::Generic { source, .. } => {
-                ObjectStorageError::UnhandledError(source)
-            }
-            object_store::Error::NotFound { path, .. } => ObjectStorageError::NoSuchKey(path),
-            err => ObjectStorageError::UnhandledError(Box::new(err)),
+            object_store::Error::Generic { source, .. } => Self::UnhandledError(source),
+            object_store::Error::NotFound { path, .. } => Self::NoSuchKey(path),
+            err => Self::UnhandledError(Box::new(err)),
         }
     }
 }
 
 impl From<serde_json::Error> for ObjectStorageError {
     fn from(error: serde_json::Error) -> Self {
-        ObjectStorageError::UnhandledError(Box::new(error))
+        Self::UnhandledError(Box::new(error))
     }
 }

@@ -53,7 +53,7 @@ impl<R: Read + Seek> OffsetReader<R> {
             finished = true
         }
 
-        OffsetReader {
+        Self {
             reader,
             offset_list,
             current_offset,

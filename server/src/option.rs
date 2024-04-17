@@ -80,7 +80,7 @@ impl Config {
                         .exit()
                 }
 
-                Config {
+                Self {
                     parseable: cli,
                     storage: Arc::new(storage),
                     storage_name: "drive",
@@ -96,7 +96,7 @@ impl Config {
                     Err(err) => err.exit(),
                 };
 
-                Config {
+                Self {
                     parseable: cli,
                     storage: Arc::new(storage),
                     storage_name: "s3",
@@ -116,10 +116,7 @@ impl Config {
 
         // Lists all the directories in the root of the bucket/directory
         // can be a stream (if it contains .stream.json file) or not
-        let has_dirs = match obj_store.list_dirs().await {
-            Ok(dirs) => !dirs.is_empty(),
-            Err(_) => false,
-        };
+        let has_dirs = (obj_store.list_dirs().await).map_or(false, |dirs| !dirs.is_empty());
 
         let has_streams = obj_store.list_streams().await.is_ok();
 
@@ -139,15 +136,15 @@ impl Config {
         self.storage.clone()
     }
 
-    pub fn staging_dir(&self) -> &PathBuf {
+    pub const fn staging_dir(&self) -> &PathBuf {
         &self.parseable.local_staging_path
     }
 
-    pub fn cache_size(&self) -> u64 {
+    pub const fn cache_size(&self) -> u64 {
         self.parseable.local_cache_size
     }
 
-    pub fn cache_dir(&self) -> &Option<PathBuf> {
+    pub const fn cache_dir(&self) -> &Option<PathBuf> {
         &self.parseable.local_cache_path
     }
 
@@ -166,7 +163,7 @@ impl Config {
         "S3 bucket"
     }
 
-    pub fn get_server_mode_string(&self) -> &str {
+    pub const fn get_server_mode_string(&self) -> &str {
         match self.parseable.mode {
             Mode::Query => "Distributed (Query)",
             Mode::Ingest => "Distributed (Ingest)",
@@ -216,19 +213,19 @@ pub enum Mode {
 }
 
 impl Mode {
-    pub fn to_str(&self) -> &str {
+    pub const fn to_str(&self) -> &str {
         match self {
-            Mode::Query => "Query",
-            Mode::Ingest => "Ingest",
-            Mode::All => "All",
+            Self::Query => "Query",
+            Self::Ingest => "Ingest",
+            Self::All => "All",
         }
     }
 
     pub fn from_string(mode: &str) -> Result<Self, String> {
         match mode {
-            "Query" => Ok(Mode::Query),
-            "Ingest" => Ok(Mode::Ingest),
-            "All" => Ok(Mode::All),
+            "Query" => Ok(Self::Query),
+            "Ingest" => Ok(Self::Ingest),
+            "All" => Ok(Self::All),
             x => Err(format!("Trying to Parse Invalid mode: {}", x)),
         }
     }
@@ -256,13 +253,13 @@ pub enum Compression {
 impl From<Compression> for parquet::basic::Compression {
     fn from(value: Compression) -> Self {
         match value {
-            Compression::UNCOMPRESSED => parquet::basic::Compression::UNCOMPRESSED,
-            Compression::SNAPPY => parquet::basic::Compression::SNAPPY,
-            Compression::GZIP => parquet::basic::Compression::GZIP(GzipLevel::default()),
-            Compression::LZO => parquet::basic::Compression::LZO,
-            Compression::BROTLI => parquet::basic::Compression::BROTLI(BrotliLevel::default()),
-            Compression::LZ4 => parquet::basic::Compression::LZ4,
-            Compression::ZSTD => parquet::basic::Compression::ZSTD(ZstdLevel::default()),
+            Compression::UNCOMPRESSED => Self::UNCOMPRESSED,
+            Compression::SNAPPY => Self::SNAPPY,
+            Compression::GZIP => Self::GZIP(GzipLevel::default()),
+            Compression::LZO => Self::LZO,
+            Compression::BROTLI => Self::BROTLI(BrotliLevel::default()),
+            Compression::LZ4 => Self::LZ4,
+            Compression::ZSTD => Self::ZSTD(ZstdLevel::default()),
         }
     }
 }
@@ -330,11 +327,11 @@ pub mod validation {
         }
 
         let size = parse_and_map::<multiples::Mebibyte>(s)
-            .or(parse_and_map::<multiples::Megabyte>(s))
-            .or(parse_and_map::<multiples::Gigibyte>(s))
-            .or(parse_and_map::<multiples::Gigabyte>(s))
-            .or(parse_and_map::<multiples::Tebibyte>(s))
-            .or(parse_and_map::<multiples::Terabyte>(s))
+            .or_else(|_| parse_and_map::<multiples::Megabyte>(s))
+            .or_else(|_| parse_and_map::<multiples::Gigibyte>(s))
+            .or_else(|_| parse_and_map::<multiples::Gigabyte>(s))
+            .or_else(|_| parse_and_map::<multiples::Tebibyte>(s))
+            .or_else(|_| parse_and_map::<multiples::Terabyte>(s))
             .map_err(|_| "Could not parse given size".to_string())?;
 
         if size < MIN_CACHE_SIZE_BYTES {

@@ -63,7 +63,7 @@ impl ParseableServer for QueryServer {
         let create_app_fn = move || {
             App::new()
                 .wrap(prometheus.clone())
-                .configure(|config| QueryServer::configure_routes(config, oidc_client.clone()))
+                .configure(|config| Self::configure_routes(config, oidc_client.clone()))
                 .wrap(actix_web::middleware::Logger::default())
                 .wrap(actix_web::middleware::Compress::default())
                 .wrap(cross_origin_config())

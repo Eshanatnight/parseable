@@ -640,7 +640,7 @@ pub async fn get_stream_info(req: HttpRequest) -> Result<impl Responder, StreamE
 }
 
 #[allow(unused)]
-fn classify_json_error(kind: serde_json::error::Category) -> StatusCode {
+const fn classify_json_error(kind: serde_json::error::Category) -> StatusCode {
     match kind {
         serde_json::error::Category::Io => StatusCode::INTERNAL_SERVER_ERROR,
         serde_json::error::Category::Syntax => StatusCode::BAD_REQUEST,
@@ -718,28 +718,26 @@ pub mod error {
     impl actix_web::ResponseError for StreamError {
         fn status_code(&self) -> http::StatusCode {
             match self {
-                StreamError::CreateStream(CreateStreamError::StreamNameValidation(_)) => {
+                Self::CreateStream(CreateStreamError::StreamNameValidation(_)) => {
                     StatusCode::BAD_REQUEST
                 }
-                StreamError::CreateStream(CreateStreamError::Storage { .. }) => {
+                Self::CreateStream(CreateStreamError::Storage { .. }) => {
                     StatusCode::INTERNAL_SERVER_ERROR
                 }
-                StreamError::CacheNotEnabled(_) => StatusCode::BAD_REQUEST,
-                StreamError::StreamNotFound(_) => StatusCode::NOT_FOUND,
-                StreamError::Custom { status, .. } => *status,
-                StreamError::UninitializedLogstream => StatusCode::METHOD_NOT_ALLOWED,
-                StreamError::Storage(_) => StatusCode::INTERNAL_SERVER_ERROR,
-                StreamError::NoAlertsSet => StatusCode::NOT_FOUND,
-                StreamError::BadAlertJson { .. } => StatusCode::BAD_REQUEST,
-                StreamError::AlertValidation(_) => StatusCode::BAD_REQUEST,
-                StreamError::InvalidAlert(_) => StatusCode::BAD_REQUEST,
-                StreamError::InvalidAlertMessage(_, _) => StatusCode::BAD_REQUEST,
-                StreamError::InvalidRetentionConfig(_) => StatusCode::BAD_REQUEST,
-                StreamError::SerdeError(_) => StatusCode::BAD_REQUEST,
-                StreamError::Anyhow(_) => StatusCode::INTERNAL_SERVER_ERROR,
-                StreamError::Network(err) => {
-                    err.status().unwrap_or(StatusCode::INTERNAL_SERVER_ERROR)
-                }
+                Self::CacheNotEnabled(_) => StatusCode::BAD_REQUEST,
+                Self::StreamNotFound(_) => StatusCode::NOT_FOUND,
+                Self::Custom { status, .. } => *status,
+                Self::UninitializedLogstream => StatusCode::METHOD_NOT_ALLOWED,
+                Self::Storage(_) => StatusCode::INTERNAL_SERVER_ERROR,
+                Self::NoAlertsSet => StatusCode::NOT_FOUND,
+                Self::BadAlertJson { .. } => StatusCode::BAD_REQUEST,
+                Self::AlertValidation(_) => StatusCode::BAD_REQUEST,
+                Self::InvalidAlert(_) => StatusCode::BAD_REQUEST,
+                Self::InvalidAlertMessage(_, _) => StatusCode::BAD_REQUEST,
+                Self::InvalidRetentionConfig(_) => StatusCode::BAD_REQUEST,
+                Self::SerdeError(_) => StatusCode::BAD_REQUEST,
+                Self::Anyhow(_) => StatusCode::INTERNAL_SERVER_ERROR,
+                Self::Network(err) => err.status().unwrap_or(StatusCode::INTERNAL_SERVER_ERROR),
             }
         }
 
@@ -753,8 +751,8 @@ pub mod error {
     impl From<MetadataError> for StreamError {
         fn from(value: MetadataError) -> Self {
             match value {
-                MetadataError::StreamMetaNotFound(s) => StreamError::StreamNotFound(s),
-                MetadataError::StandaloneWithDistributed(s) => StreamError::Custom {
+                MetadataError::StreamMetaNotFound(s) => Self::StreamNotFound(s),
+                MetadataError::StandaloneWithDistributed(s) => Self::Custom {
                     msg: s,
                     status: StatusCode::INTERNAL_SERVER_ERROR,
                 },

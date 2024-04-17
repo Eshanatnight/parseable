@@ -68,7 +68,7 @@ impl StreamInfo {
         let map = self.read().expect(LOCK_EXPECT);
         let meta = map
             .get(stream_name)
-            .ok_or(MetadataError::StreamMetaNotFound(stream_name.to_owned()))?;
+            .ok_or_else(|| MetadataError::StreamMetaNotFound(stream_name.to_owned()))?;
 
         for alert in &meta.alerts.alerts {
             alert.check_alert(stream_name, rb.clone())
@@ -89,14 +89,14 @@ impl StreamInfo {
     pub fn cache_enabled(&self, stream_name: &str) -> Result<bool, MetadataError> {
         let map = self.read().expect(LOCK_EXPECT);
         map.get(stream_name)
-            .ok_or(MetadataError::StreamMetaNotFound(stream_name.to_string()))
+            .ok_or_else(|| MetadataError::StreamMetaNotFound(stream_name.to_string()))
             .map(|metadata| metadata.cache_enabled)
     }
 
     pub fn get_time_partition(&self, stream_name: &str) -> Result<Option<String>, MetadataError> {
         let map = self.read().expect(LOCK_EXPECT);
         map.get(stream_name)
-            .ok_or(MetadataError::StreamMetaNotFound(stream_name.to_string()))
+            .ok_or_else(|| MetadataError::StreamMetaNotFound(stream_name.to_string()))
             .map(|metadata| metadata.time_partition.clone())
     }
 
@@ -106,7 +106,7 @@ impl StreamInfo {
     ) -> Result<Option<String>, MetadataError> {
         let map = self.read().expect(LOCK_EXPECT);
         map.get(stream_name)
-            .ok_or(MetadataError::StreamMetaNotFound(stream_name.to_string()))
+            .ok_or_else(|| MetadataError::StreamMetaNotFound(stream_name.to_string()))
             .map(|metadata| metadata.static_schema_flag.clone())
     }
 
@@ -114,7 +114,7 @@ impl StreamInfo {
         let mut map = self.write().expect(LOCK_EXPECT);
         let stream = map
             .get_mut(stream_name)
-            .ok_or(MetadataError::StreamMetaNotFound(stream_name.to_string()))?;
+            .ok_or_else(|| MetadataError::StreamMetaNotFound(stream_name.to_string()))?;
         stream.cache_enabled = enable;
         Ok(())
     }
@@ -123,7 +123,7 @@ impl StreamInfo {
         let map = self.read().expect(LOCK_EXPECT);
         let schema = map
             .get(stream_name)
-            .ok_or(MetadataError::StreamMetaNotFound(stream_name.to_string()))
+            .ok_or_else(|| MetadataError::StreamMetaNotFound(stream_name.to_string()))
             .map(|metadata| &metadata.schema)?;
 
         // sort fields on read from hashmap as order of fields can differ.
@@ -142,7 +142,7 @@ impl StreamInfo {
     pub fn set_alert(&self, stream_name: &str, alerts: Alerts) -> Result<(), MetadataError> {
         let mut map = self.write().expect(LOCK_EXPECT);
         map.get_mut(stream_name)
-            .ok_or(MetadataError::StreamMetaNotFound(stream_name.to_string()))
+            .ok_or_else(|| MetadataError::StreamMetaNotFound(stream_name.to_string()))
             .map(|metadata| {
                 metadata.alerts = alerts;
             })
@@ -155,7 +155,7 @@ impl StreamInfo {
     ) -> Result<(), MetadataError> {
         let mut map = self.write().expect(LOCK_EXPECT);
         map.get_mut(stream_name)
-            .ok_or(MetadataError::StreamMetaNotFound(stream_name.to_string()))
+            .ok_or_else(|| MetadataError::StreamMetaNotFound(stream_name.to_string()))
             .map(|metadata| {
                 metadata.first_event_at = first_event_at;
             })

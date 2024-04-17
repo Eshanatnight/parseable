@@ -147,13 +147,11 @@ where
             let message: Message = serde_json::from_str(attribute_value).unwrap();
             req.headers_mut().insert(
                 HeaderName::from_static(AUTHORIZATION_KEY),
-                header::HeaderValue::from_str(&message.common_attributes.authorization.clone())
-                    .unwrap(),
+                header::HeaderValue::from_str(&message.common_attributes.authorization).unwrap(),
             );
             req.headers_mut().insert(
                 HeaderName::from_static(STREAM_NAME_HEADER_KEY),
-                header::HeaderValue::from_str(&message.common_attributes.x_p_stream.clone())
-                    .unwrap(),
+                header::HeaderValue::from_str(&message.common_attributes.x_p_stream).unwrap(),
             );
             req.headers_mut().insert(
                 HeaderName::from_static(LOG_SOURCE_KEY),

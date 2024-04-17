@@ -55,13 +55,11 @@ fn status_info(config: &Config, scheme: &str, id: Uid) {
         scheme.to_ascii_uppercase(),
         config.parseable.grpc_port
     );
-
-    let mut credentials =
-        String::from("\"As set in P_USERNAME and P_PASSWORD environment variables\"");
-
-    if config.is_default_creds() {
-        credentials = "\"Using default creds admin, admin. Please set credentials with P_USERNAME and P_PASSWORD.\"".red().to_string();
-    }
+    let credentials = if config.is_default_creds() {
+        "\"Using default creds admin, admin. Please set credentials with P_USERNAME and P_PASSWORD.\"".red().to_string()
+    } else {
+        String::from("\"As set in P_USERNAME and P_PASSWORD environment variables\"")
+    };
 
     let llm_status = match &config.parseable.open_ai_key {
         Some(_) => "OpenAI Configured".green(),

@@ -75,7 +75,7 @@ pub struct LocalCacheManager {
 }
 
 impl LocalCacheManager {
-    pub fn global() -> Option<&'static LocalCacheManager> {
+    pub fn global() -> Option<&'static Self> {
         static INSTANCE: OnceCell<LocalCacheManager> = OnceCell::new();
 
         let cache_path = CONFIG.parseable.local_cache_path.as_ref()?;
@@ -83,7 +83,7 @@ impl LocalCacheManager {
         Some(INSTANCE.get_or_init(|| {
             let cache_path = cache_path.clone();
             std::fs::create_dir_all(&cache_path).unwrap();
-            LocalCacheManager {
+            Self {
                 filesystem: LocalFileSystem::new(),
                 cache_path,
                 cache_capacity: CONFIG.parseable.local_cache_size,

@@ -49,8 +49,8 @@ pub enum Rule {
 impl Rule {
     pub fn resolves(&self, event: RecordBatch) -> Vec<AlertState> {
         match self {
-            Rule::Column(rule) => rule.resolves(event),
-            Rule::Composite(rule) => rule
+            Self::Column(rule) => rule.resolves(event),
+            Self::Composite(rule) => rule
                 .resolves(event)
                 .iter()
                 .map(|x| {
@@ -66,15 +66,15 @@ impl Rule {
 
     pub fn valid_for_schema(&self, schema: &Schema) -> bool {
         match self {
-            Rule::Column(rule) => rule.valid_for_schema(schema),
-            Rule::Composite(rule) => rule.valid_for_schema(schema),
+            Self::Column(rule) => rule.valid_for_schema(schema),
+            Self::Composite(rule) => rule.valid_for_schema(schema),
         }
     }
 
     pub fn trigger_reason(&self) -> String {
         match self {
-            Rule::Column(rule) => rule.trigger_reason(),
-            Rule::Composite(rule) => format!("matched rule {}", rule),
+            Self::Column(rule) => rule.trigger_reason(),
+            Self::Composite(rule) => format!("matched rule {}", rule),
         }
     }
 }
@@ -219,7 +219,7 @@ impl ConsecutiveStringRule {
     }
 }
 
-fn one() -> u32 {
+const fn one() -> u32 {
     1
 }
 
@@ -236,7 +236,7 @@ pub enum CompositeRule {
 impl CompositeRule {
     fn resolves(&self, event: RecordBatch) -> Vec<bool> {
         let res = match self {
-            CompositeRule::And(rules) => {
+            Self::And(rules) => {
                 // get individual evaluation for each subrule
                 let mut evaluations = rules
                     .iter()
@@ -255,7 +255,7 @@ impl CompositeRule {
                     vec![]
                 }
             }
-            CompositeRule::Or(rules) => {
+            Self::Or(rules) => {
                 // get individual evaluation for each subrule
                 let evaluations: Vec<Vec<bool>> = rules
                     .iter()
@@ -282,19 +282,19 @@ impl CompositeRule {
 
                 res
             }
-            CompositeRule::Numeric(rule) => {
+            Self::Numeric(rule) => {
                 let Some(column) = event.column_by_name(&rule.column) else {
                     return Vec::new();
                 };
                 rule.resolves(column)
             }
-            CompositeRule::String(rule) => {
+            Self::String(rule) => {
                 let Some(column) = event.column_by_name(&rule.column) else {
                     return Vec::new();
                 };
                 rule.resolves(as_string_array(column))
             }
-            CompositeRule::Not(rule) => {
+            Self::Not(rule) => {
                 let mut res = rule.resolves(event);
                 res.iter_mut().for_each(|x| *x = !*x);
                 res
@@ -306,11 +306,11 @@ impl CompositeRule {
 
     fn valid_for_schema(&self, schema: &Schema) -> bool {
         match self {
-            CompositeRule::And(rules) => rules.iter().all(|rule| rule.valid_for_schema(schema)),
-            CompositeRule::Or(rules) => rules.iter().all(|rule| rule.valid_for_schema(schema)),
-            CompositeRule::Not(rule) => rule.valid_for_schema(schema),
-            CompositeRule::Numeric(rule) => rule.valid_for_schema(schema),
-            CompositeRule::String(rule) => rule.valid_for_schema(schema),
+            Self::And(rules) => rules.iter().all(|rule| rule.valid_for_schema(schema)),
+            Self::Or(rules) => rules.iter().all(|rule| rule.valid_for_schema(schema)),
+            Self::Not(rule) => rule.valid_for_schema(schema),
+            Self::Numeric(rule) => rule.valid_for_schema(schema),
+            Self::String(rule) => rule.valid_for_schema(schema),
         }
     }
 }
@@ -318,17 +318,17 @@ impl CompositeRule {
 impl fmt::Display for CompositeRule {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let v = match self {
-            CompositeRule::And(rules) => {
+            Self::And(rules) => {
                 let rules_str: Vec<String> = rules.iter().map(|rule| rule.to_string()).collect();
                 format!("({})", rules_str.join(" and "))
             }
-            CompositeRule::Or(rules) => {
+            Self::Or(rules) => {
                 let rules_str: Vec<String> = rules.iter().map(|rule| rule.to_string()).collect();
                 format!("({})", rules_str.join(" or "))
             }
-            CompositeRule::Not(rule) => format!("!({})", rule),
-            CompositeRule::Numeric(numeric_rule) => numeric_rule.to_string(),
-            CompositeRule::String(string_rule) => string_rule.to_string(),
+            Self::Not(rule) => format!("!({})", rule),
+            Self::Numeric(numeric_rule) => numeric_rule.to_string(),
+            Self::String(string_rule) => string_rule.to_string(),
         };
         write!(f, "{}", v)
     }
@@ -658,12 +658,12 @@ pub mod base {
                     f,
                     "{}",
                     match self {
-                        NumericOperator::EqualTo => "=",
-                        NumericOperator::NotEqualTo => "!=",
-                        NumericOperator::GreaterThan => ">",
-                        NumericOperator::GreaterThanEquals => ">=",
-                        NumericOperator::LessThan => "<",
-                        NumericOperator::LessThanEquals => "<=",
+                        Self::EqualTo => "=",
+                        Self::NotEqualTo => "!=",
+                        Self::GreaterThan => ">",
+                        Self::GreaterThanEquals => ">=",
+                        Self::LessThan => "<",
+                        Self::LessThanEquals => "<=",
                     }
                 )
             }
@@ -693,11 +693,11 @@ pub mod base {
                     f,
                     "{}",
                     match self {
-                        StringOperator::Exact => "=",
-                        StringOperator::NotExact => "!=",
-                        StringOperator::Contains => "=%",
-                        StringOperator::NotContains => "!%",
-                        StringOperator::Regex => "~",
+                        Self::Exact => "=",
+                        Self::NotExact => "!=",
+                        Self::Contains => "=%",
+                        Self::NotContains => "!%",
+                        Self::Regex => "~",
                     }
                 )
             }

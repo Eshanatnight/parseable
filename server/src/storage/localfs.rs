@@ -82,7 +82,7 @@ pub struct LocalFS {
 }
 
 impl LocalFS {
-    pub fn new(root: PathBuf) -> Self {
+    pub const fn new(root: PathBuf) -> Self {
         Self { root }
     }
 
@@ -199,11 +199,7 @@ impl ObjectStorage for LocalFS {
     ) -> Result<Vec<Bytes>, ObjectStorageError> {
         let time = Instant::now();
 
-        let prefix = if let Some(path) = base_path {
-            path.to_path(&self.root)
-        } else {
-            self.root.clone()
-        };
+        let prefix = base_path.map_or_else(|| self.root.clone(), |path| path.to_path(&self.root));
 
         let mut entries = fs::read_dir(&prefix).await?;
         let mut res = Vec::new();
@@ -488,6 +484,6 @@ async fn dir_name(entry: DirEntry) -> Result<Option<String>, ObjectStorageError>
 
 impl From<fs_extra::error::Error> for ObjectStorageError {
     fn from(e: fs_extra::error::Error) -> Self {
-        ObjectStorageError::UnhandledError(Box::new(e))
+        Self::UnhandledError(Box::new(e))
     }
 }

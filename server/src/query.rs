@@ -67,16 +67,15 @@ impl Query {
             .get_datafusion_runtime()
             .with_disk_manager(DiskManagerConfig::NewOs);
 
-        let (pool_size, fraction) = match CONFIG.parseable.query_memory_pool_size {
-            Some(size) => (size, 1.),
-            None => {
+        let (pool_size, fraction) = CONFIG.parseable.query_memory_pool_size.map_or_else(
+            || {
                 let mut system = System::new();
                 system.refresh_memory();
                 let available_mem = system.available_memory();
                 (available_mem as usize, 0.85)
-            }
-        };
-
+            },
+            |size| (size, 1.),
+        );
         let runtime_config = runtime_config.with_memory_limit(pool_size, fraction);
         let runtime = Arc::new(RuntimeEnv::new(runtime_config).unwrap());
 
@@ -178,7 +177,7 @@ impl Query {
 }
 
 #[derive(Debug, Default)]
-pub(crate) struct TableScanVisitor {
+pub struct TableScanVisitor {
     tables: Vec<String>,
 }
 

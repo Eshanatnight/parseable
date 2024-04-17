@@ -243,12 +243,10 @@ pub trait ObjectStorage: Sync + 'static {
     async fn get_alerts(&self, stream_name: &str) -> Result<Alerts, ObjectStorageError> {
         match self.get_object(&alert_json_path(stream_name)).await {
             Ok(alerts) => {
-                if let Ok(alerts) = serde_json::from_slice(&alerts) {
-                    Ok(alerts)
-                } else {
+                serde_json::from_slice(&alerts).map_or_else(|_| {
                     log::error!("Incompatible alerts found for stream - {stream_name}. Refer https://www.parseable.io/docs/alerts for correct alert config.");
                     Ok(Alerts::default())
-                }
+                },  Ok)
             }
             Err(e) => match e {
                 ObjectStorageError::NoSuchKey(_) => Ok(Alerts::default()),
@@ -337,11 +335,10 @@ pub trait ObjectStorage: Sync + 'static {
             .expect("is object")
             .get("retention")
             .cloned();
-        if let Some(retention) = retention {
-            Ok(serde_json::from_value(retention)?)
-        } else {
-            Ok(Retention::default())
-        }
+        retention.map_or_else(
+            || Ok(Retention::default()),
+            |retention| Ok(serde_json::from_value(retention)?),
+        )
     }
 
     async fn get_metadata(&self) -> Result<Option<StorageMetadata>, ObjectStorageError> {

@@ -81,7 +81,7 @@ pub struct TimePeriod {
 
 #[allow(dead_code)]
 impl TimePeriod {
-    pub fn new(start: DateTime<Utc>, end: DateTime<Utc>, data_granularity: u32) -> Self {
+    pub const fn new(start: DateTime<Utc>, end: DateTime<Utc>, data_granularity: u32) -> Self {
         Self {
             data_granularity,
             start,
@@ -265,13 +265,13 @@ fn get_from_env(var_to_fetch: &str) -> String {
 }
 
 pub fn get_ingestor_id() -> String {
-    let now = Utc::now().to_rfc3339().to_string();
+    let now = Utc::now().to_rfc3339();
     let mut hasher = Sha256::new();
     hasher.update(now);
     let result = format!("{:x}", hasher.finalize());
     let result = result.split_at(15).0.to_string();
     log::debug!("Ingestor ID: {}", &result);
-    result.to_string()
+    result
 }
 
 #[cfg(test)]

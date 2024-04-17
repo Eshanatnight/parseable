@@ -25,7 +25,7 @@ pub struct MetricLayer<T: ObjectStore> {
 }
 
 impl<T: ObjectStore> MetricLayer<T> {
-    pub fn new(inner: T) -> Self {
+    pub const fn new(inner: T) -> Self {
         Self { inner }
     }
 }

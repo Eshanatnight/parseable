@@ -16,15 +16,14 @@ pub struct SchemaFields {
     name: String,
     data_type: String,
 }
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ParsedSchema {
     pub fields: Vec<Fields>,
     pub metadata: HashMap<String, String>,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Fields {
     name: String,
@@ -35,8 +34,7 @@ pub struct Fields {
     metadata: HashMap<String, String>,
 }
 
-#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
-
+#[derive(Default, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Metadata {}
 pub fn convert_static_schema_to_arrow_schema(
     static_schema: StaticSchema,
@@ -148,12 +146,12 @@ fn add_parseable_fields_to_static_schema(
     Ok(schema)
 }
 
-fn default_nullable() -> bool {
+const fn default_nullable() -> bool {
     true
 }
-fn default_dict_id() -> i64 {
+const fn default_dict_id() -> i64 {
     0
 }
-fn default_dict_is_ordered() -> bool {
+const fn default_dict_is_ordered() -> bool {
     false
 }

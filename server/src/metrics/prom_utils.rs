@@ -26,10 +26,10 @@ impl Default for Metrics {
         let address = format!(
             "http://{}:{}",
             url.domain()
-                .unwrap_or(url.host_str().expect("should have a host")),
+            .unwrap_or_else(|| url.host_str().expect("should have a host")),
             url.port().unwrap_or_default()
         );
-        Metrics {
+        Self {
             address,
             parseable_events_ingested: 0.0,
             parseable_staging_files: 0.0,
@@ -41,7 +41,7 @@ impl Default for Metrics {
 
 impl Metrics {
     fn new(address: String) -> Self {
-        Metrics {
+        Self {
             address,
             parseable_events_ingested: 0.0,
             parseable_staging_files: 0.0,
@@ -53,7 +53,7 @@ impl Metrics {
 
 impl Metrics {
     pub fn from_prometheus_samples(samples: Vec<PromSample>, address: String) -> Self {
-        let mut prom_dress = Metrics::new(address);
+        let mut prom_dress = Self::new(address);
 
         for sample in samples {
             if &sample.metric == "parseable_events_ingested" {

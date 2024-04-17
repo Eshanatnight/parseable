@@ -70,8 +70,8 @@ pub struct ParseableVersion {
 }
 
 impl ParseableVersion {
-    pub fn new(version: semver::Version, commit_hash: String) -> Self {
-        ParseableVersion {
+    pub const fn new(version: semver::Version, commit_hash: String) -> Self {
+        Self {
             released_version: version,
             commit_hash,
         }

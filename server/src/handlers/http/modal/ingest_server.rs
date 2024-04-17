@@ -82,7 +82,7 @@ impl ParseableServer for IngestServer {
         let create_app_fn = move || {
             App::new()
                 .wrap(prometheus.clone())
-                .configure(|config| IngestServer::configure_routes(config, None))
+                .configure(|config| Self::configure_routes(config, None))
                 .wrap(actix_web::middleware::Logger::default())
                 .wrap(actix_web::middleware::Compress::default())
                 .wrap(cross_origin_config())

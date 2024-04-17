@@ -60,57 +60,49 @@ pub enum TypedStatistics {
 impl TypedStatistics {
     pub fn update(self, other: Self) -> Self {
         match (self, other) {
-            (TypedStatistics::Bool(this), TypedStatistics::Bool(other)) => {
-                TypedStatistics::Bool(BoolType {
-                    min: min(this.min, other.min),
-                    max: max(this.max, other.max),
-                })
-            }
-            (TypedStatistics::Float(this), TypedStatistics::Float(other)) => {
-                TypedStatistics::Float(Float64Type {
-                    min: this.min.min(other.min),
-                    max: this.max.max(other.max),
-                })
-            }
-            (TypedStatistics::Int(this), TypedStatistics::Int(other)) => {
-                TypedStatistics::Int(Int64Type {
-                    min: min(this.min, other.min),
-                    max: max(this.max, other.max),
-                })
-            }
-            (TypedStatistics::String(this), TypedStatistics::String(other)) => {
-                TypedStatistics::String(Utf8Type {
-                    min: min(this.min, other.min),
-                    max: max(this.max, other.max),
-                })
-            }
+            (Self::Bool(this), Self::Bool(other)) => Self::Bool(BoolType {
+                min: min(this.min, other.min),
+                max: max(this.max, other.max),
+            }),
+            (Self::Float(this), Self::Float(other)) => Self::Float(Float64Type {
+                min: this.min.min(other.min),
+                max: this.max.max(other.max),
+            }),
+            (Self::Int(this), Self::Int(other)) => Self::Int(Int64Type {
+                min: min(this.min, other.min),
+                max: max(this.max, other.max),
+            }),
+            (Self::String(this), Self::String(other)) => Self::String(Utf8Type {
+                min: min(this.min, other.min),
+                max: max(this.max, other.max),
+            }),
             _ => panic!("Cannot update wrong types"),
         }
     }
 
     pub fn min_max_as_scalar(self, datatype: &DataType) -> Option<(ScalarValue, ScalarValue)> {
         let (min, max) = match (self, datatype) {
-            (TypedStatistics::Bool(stats), DataType::Boolean) => (
+            (Self::Bool(stats), DataType::Boolean) => (
                 ScalarValue::Boolean(Some(stats.min)),
                 ScalarValue::Boolean(Some(stats.max)),
             ),
-            (TypedStatistics::Int(stats), DataType::Int32) => (
+            (Self::Int(stats), DataType::Int32) => (
                 ScalarValue::Int32(Some(stats.min as i32)),
                 ScalarValue::Int32(Some(stats.max as i32)),
             ),
-            (TypedStatistics::Int(stats), DataType::Int64) => (
+            (Self::Int(stats), DataType::Int64) => (
                 ScalarValue::Int64(Some(stats.min)),
                 ScalarValue::Int64(Some(stats.max)),
             ),
-            (TypedStatistics::Float(stats), DataType::Float32) => (
+            (Self::Float(stats), DataType::Float32) => (
                 ScalarValue::Float32(Some(stats.min as f32)),
                 ScalarValue::Float32(Some(stats.max as f32)),
             ),
-            (TypedStatistics::Float(stats), DataType::Float64) => (
+            (Self::Float(stats), DataType::Float64) => (
                 ScalarValue::Float64(Some(stats.min)),
                 ScalarValue::Float64(Some(stats.max)),
             ),
-            (TypedStatistics::String(stats), DataType::Utf8) => (
+            (Self::String(stats), DataType::Utf8) => (
                 ScalarValue::Utf8(Some(stats.min)),
                 ScalarValue::Utf8(Some(stats.max)),
             ),
@@ -143,35 +135,35 @@ impl TryFrom<&Statistics> for TypedStatistics {
         }
 
         let res = match value {
-            Statistics::Boolean(stats) => TypedStatistics::Bool(BoolType {
+            Statistics::Boolean(stats) => Self::Bool(BoolType {
                 min: *stats.min(),
                 max: *stats.max(),
             }),
-            Statistics::Int32(stats) => TypedStatistics::Int(Int64Type {
+            Statistics::Int32(stats) => Self::Int(Int64Type {
                 min: *stats.min() as i64,
                 max: *stats.max() as i64,
             }),
-            Statistics::Int64(stats) => TypedStatistics::Int(Int64Type {
+            Statistics::Int64(stats) => Self::Int(Int64Type {
                 min: *stats.min(),
                 max: *stats.max(),
             }),
-            Statistics::Int96(stats) => TypedStatistics::Int(Int64Type {
+            Statistics::Int96(stats) => Self::Int(Int64Type {
                 min: stats.min().to_i64(),
                 max: stats.max().to_i64(),
             }),
-            Statistics::Float(stats) => TypedStatistics::Float(Float64Type {
+            Statistics::Float(stats) => Self::Float(Float64Type {
                 min: *stats.min() as f64,
                 max: *stats.max() as f64,
             }),
-            Statistics::Double(stats) => TypedStatistics::Float(Float64Type {
+            Statistics::Double(stats) => Self::Float(Float64Type {
                 min: *stats.min(),
                 max: *stats.max(),
             }),
-            Statistics::ByteArray(stats) => TypedStatistics::String(Utf8Type {
+            Statistics::ByteArray(stats) => Self::String(Utf8Type {
                 min: stats.min().as_utf8()?.to_owned(),
                 max: stats.max().as_utf8()?.to_owned(),
             }),
-            Statistics::FixedLenByteArray(stats) => TypedStatistics::String(Utf8Type {
+            Statistics::FixedLenByteArray(stats) => Self::String(Utf8Type {
                 min: stats.min().as_utf8()?.to_owned(),
                 max: stats.max().as_utf8()?.to_owned(),
             }),

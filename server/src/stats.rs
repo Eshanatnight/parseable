@@ -64,10 +64,10 @@ pub fn delete_stats(stream_name: &str, format: &'static str) -> prometheus::Resu
     Ok(())
 }
 
-fn event_labels<'a>(stream_name: &'a str, format: &'static str) -> [&'a str; 2] {
+const fn event_labels<'a>(stream_name: &'a str, format: &'static str) -> [&'a str; 2] {
     [stream_name, format]
 }
 
-fn storage_size_labels(stream_name: &str) -> [&str; 3] {
+const fn storage_size_labels(stream_name: &str) -> [&str; 3] {
     ["data", stream_name, "parquet"]
 }

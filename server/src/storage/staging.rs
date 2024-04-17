@@ -135,7 +135,7 @@ impl StorageDir {
         &self,
         exclude: NaiveDateTime,
     ) -> HashMap<PathBuf, Vec<PathBuf>> {
-        let hot_filename = StorageDir::file_time_suffix(exclude, ARROW_FILE_EXTENSION);
+        let hot_filename = Self::file_time_suffix(exclude, ARROW_FILE_EXTENSION);
         // hashmap <time, vec[paths]> but exclude where hot filename matches
         let mut grouped_arrow_file: HashMap<PathBuf, Vec<PathBuf>> = HashMap::new();
         let mut arrow_files = self.arrow_files();
@@ -280,34 +280,64 @@ fn parquet_writer_props(
     index_time_partition: usize,
 ) -> WriterPropertiesBuilder {
     let index_time_partition: i32 = index_time_partition as i32;
+    time_partition.map_or_else(
+        || {
+            WriterProperties::builder()
+                .set_max_row_group_size(CONFIG.parseable.row_group_size)
+                .set_compression(CONFIG.parseable.parquet_compression.into())
+                .set_column_encoding(
+                    ColumnPath::new(vec![DEFAULT_TIMESTAMP_KEY.to_string()]),
+                    Encoding::DELTA_BINARY_PACKED,
+                )
+                .set_sorting_columns(Some(vec![SortingColumn {
+                    column_idx: index_time_partition,
+                    descending: true,
+                    nulls_first: true,
+                }]))
+        },
+        |time_partition| {
+            WriterProperties::builder()
+                .set_max_row_group_size(CONFIG.parseable.row_group_size)
+                .set_compression(CONFIG.parseable.parquet_compression.into())
+                .set_column_encoding(
+                    ColumnPath::new(vec![time_partition]),
+                    Encoding::DELTA_BYTE_ARRAY,
+                )
+                .set_sorting_columns(Some(vec![SortingColumn {
+                    column_idx: index_time_partition,
+                    descending: true,
+                    nulls_first: true,
+                }]))
+        },
+    )
 
-    if let Some(time_partition) = time_partition {
-        WriterProperties::builder()
-            .set_max_row_group_size(CONFIG.parseable.row_group_size)
-            .set_compression(CONFIG.parseable.parquet_compression.into())
-            .set_column_encoding(
-                ColumnPath::new(vec![time_partition]),
-                Encoding::DELTA_BYTE_ARRAY,
-            )
-            .set_sorting_columns(Some(vec![SortingColumn {
-                column_idx: index_time_partition,
-                descending: true,
-                nulls_first: true,
-            }]))
-    } else {
-        WriterProperties::builder()
-            .set_max_row_group_size(CONFIG.parseable.row_group_size)
-            .set_compression(CONFIG.parseable.parquet_compression.into())
-            .set_column_encoding(
-                ColumnPath::new(vec![DEFAULT_TIMESTAMP_KEY.to_string()]),
-                Encoding::DELTA_BINARY_PACKED,
-            )
-            .set_sorting_columns(Some(vec![SortingColumn {
-                column_idx: index_time_partition,
-                descending: true,
-                nulls_first: true,
-            }]))
-    }
+    // if let Some(time_partition) = time_partition {
+    //     WriterProperties::builder()
+    //         .set_max_row_group_size(CONFIG.parseable.row_group_size)
+    //         .set_compression(CONFIG.parseable.parquet_compression.into())
+    //         .set_column_encoding(
+    //             ColumnPath::new(vec![time_partition]),
+    //             Encoding::DELTA_BYTE_ARRAY,
+    //         )
+    //         .set_sorting_columns(Some(vec![SortingColumn {
+    //             column_idx: index_time_partition,
+    //             descending: true,
+    //             nulls_first: true,
+    //         }]))
+    // } else {
+    //     WriterProperties::builder()
+    //         .set_max_row_group_size(CONFIG.parseable.row_group_size)
+    //         .set_compression(CONFIG.parseable.parquet_compression.into())
+    //         .set_column_encoding(
+    //             ColumnPath::new(vec![DEFAULT_TIMESTAMP_KEY.to_string()]),
+    //             Encoding::DELTA_BINARY_PACKED,
+    //         )
+    //         .set_sorting_columns(Some(vec![SortingColumn {
+    //             column_idx: index_time_partition,
+    //             descending: true,
+    //             nulls_first: true,
+    //         }]))
+    // }
 }
 
 pub fn get_ingestor_info() -> anyhow::Result<IngestorMetadata> {

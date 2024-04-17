@@ -34,7 +34,7 @@ pub fn flatten(
             if validation_required {
                 let validate_time_partition_result = validate_time_partition(
                     Value::Object(nested_dict.clone()),
-                    time_partition.clone(),
+                    time_partition,
                     time_partition_limit.clone(),
                 );
                 if validate_time_partition_result.is_ok() {

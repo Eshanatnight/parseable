@@ -166,7 +166,7 @@ impl TryFrom<Vec<TaskView>> for Retention {
             })
         }
 
-        Ok(Retention { tasks })
+        Ok(Self { tasks })
     }
 }
 
