@@ -53,9 +53,9 @@ pub struct Query {
     start_time: String,
     end_time: String,
     #[serde(default)]
-    send_null: bool,
+    pub send_null: bool,
     #[serde(skip)]
-    fields: bool,
+    pub fields: bool,
     #[serde(skip)]
     filter_tags: Option<Vec<String>>,
 }
@@ -175,7 +175,7 @@ impl FromRequest for Query {
     }
 }
 
-async fn into_query(
+pub async fn into_query(
     query: &Query,
     session_state: &SessionState,
 ) -> Result<crate::query::Query, QueryError> {
