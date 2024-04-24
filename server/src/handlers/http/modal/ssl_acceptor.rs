@@ -32,7 +32,7 @@ pub fn get_ssl_acceptor(
             let key_file = &mut BufReader::new(File::open(key)?);
             let certs = rustls_pemfile::certs(cert_file).collect::<Result<Vec<_>, _>>()?;
             let private_key = rustls_pemfile::private_key(key_file)?
-                .ok_or(anyhow::anyhow!("Could not parse private key."))?;
+                .ok_or_else(|| anyhow::anyhow!("Could not parse private key."))?;
 
             Ok(Some(server_config.with_single_cert(certs, private_key)?))
         }

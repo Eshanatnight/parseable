@@ -26,7 +26,7 @@ impl Default for Metrics {
         let address = format!(
             "http://{}:{}",
             url.domain()
-            .unwrap_or_else(|| url.host_str().expect("should have a host")),
+                .unwrap_or_else(|| url.host_str().expect("should have a host")),
             url.port().unwrap_or_default()
         );
         Self {

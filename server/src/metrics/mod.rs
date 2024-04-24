@@ -132,7 +132,7 @@ fn prom_process_metrics(metrics: &PrometheusMetrics) {
 }
 
 #[cfg(not(target_os = "linux"))]
-fn prom_process_metrics(_metrics: &PrometheusMetrics) {}
+const fn prom_process_metrics(_metrics: &PrometheusMetrics) {}
 
 pub async fn fetch_stats_from_storage() {
     for stream_name in STREAM_INFO.list_streams() {

@@ -556,7 +556,9 @@ impl PartialTimeFilter {
             Self::Low(Bound::Excluded(time)) => (Operator::Gt, time.and_utc().timestamp_millis()),
             Self::Low(Bound::Included(time)) => (Operator::GtEq, time.and_utc().timestamp_millis()),
             Self::High(Bound::Excluded(time)) => (Operator::Lt, time.and_utc().timestamp_millis()),
-            Self::High(Bound::Included(time)) => (Operator::LtEq, time.and_utc().timestamp_millis()),
+            Self::High(Bound::Included(time)) => {
+                (Operator::LtEq, time.and_utc().timestamp_millis())
+            }
             Self::Eq(time) => (Operator::Eq, time.and_utc().timestamp_millis()),
             _ => unimplemented!(),
         };
@@ -571,6 +573,7 @@ impl PartialTimeFilter {
         ))
     }
 
+    #[allow(unused)]
     pub fn binary_expr_timestamp_partition_key(&self, left: Expr) -> Expr {
         let (op, right) = match self {
             Self::Low(Bound::Excluded(time)) => (Operator::Gt, time),

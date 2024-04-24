@@ -161,9 +161,9 @@ impl Sessions {
     pub fn remove_session(&mut self, key: &SessionKey) -> Option<String> {
         let (user, _) = self.active_sessions.remove(key)?;
 
-        self.user_sessions.get_mut(&user).and_then(|items| {
+        self.user_sessions.get_mut(&user).map(|items| {
             items.retain(|(session, _)| session != key);
-            Some(user)
+            user
         })
     }
 

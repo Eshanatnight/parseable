@@ -191,10 +191,10 @@ async fn create_manifest(
         .date_naive()
         .and_time(
             NaiveTime::from_num_seconds_from_midnight_opt(23 * 3600 + 59 * 60 + 59, 999_999_999)
-                .ok_or(IOError::new(
+                .ok_or_else(|| {IOError::new(
                     ErrorKind::Other,
                     "Failed to create upper bound for manifest",
-                ))
+                )})
                 .map_err(ObjectStorageError::IoError)?,
         )
         .and_utc();
