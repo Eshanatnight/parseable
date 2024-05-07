@@ -35,7 +35,7 @@ pub fn flatten(
                 let validate_time_partition_result = validate_time_partition(
                     Value::Object(nested_dict.clone()),
                     time_partition,
-                    time_partition_limit.clone(),
+                    time_partition_limit,
                 );
                 if validate_time_partition_result.is_ok() {
                     let mut map = Map::new();
@@ -95,12 +95,8 @@ pub fn validate_time_partition(
     if time_partition.is_none() {
         Ok(true)
     } else {
-        let time_partition_limit: i64 = if let Some(time_partition_limit) = time_partition_limit {
-            time_partition_limit.parse().unwrap_or(30)
-        } else {
-            30
-        };
-        let body_timestamp = value.get(&time_partition.clone().unwrap().to_string());
+        let time_partition_limit: i64 = time_partition_limit.map_or(30, |time_partition_limit| time_partition_limit.parse().unwrap_or(30));
+        let body_timestamp = value.get(&time_partition.clone().unwrap());
         if body_timestamp.is_some() {
             if body_timestamp
                 .unwrap()

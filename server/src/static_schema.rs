@@ -6,12 +6,12 @@ use std::str;
 
 use arrow_schema::{DataType, Field, Schema, TimeUnit};
 use std::{collections::HashMap, sync::Arc};
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 pub struct StaticSchema {
     fields: Vec<SchemaFields>,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 pub struct SchemaFields {
     name: String,
     data_type: String,

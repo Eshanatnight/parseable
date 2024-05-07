@@ -210,7 +210,7 @@ pub fn server() -> impl Future<Output = Result<(), Box<dyn std::error::Error + S
         Some(config) => {
             let server = Server::builder()
                 .tls_config(config)
-                .map_or_else(|_| Server::builder(), |server| server);
+                .unwrap_or_else(|_| Server::builder());
 
             server
                 .accept_http1(true)
